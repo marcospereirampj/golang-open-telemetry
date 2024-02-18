@@ -32,7 +32,7 @@ func NewHTTPRouter(params RouterParams) *chi.Mux {
 		fmt.Fprint(w, "healthy")
 	})
 
-	router.Route("/project-name", func(r chi.Router) {
+	router.Route("/", func(r chi.Router) {
 		for _, handler := range params.Handlers {
 			r.Route(handler.Pattern(), func(subRoute chi.Router) {
 				subRoute.Method(handler.Method(), "/", handler)
@@ -75,6 +75,7 @@ func Serve() {
 	app := fx.New(
 		fx.Options(
 			ServerDependencies,
+			HomeModule,
 		),
 		fx.Invoke(StartHTTPServer),
 	)
