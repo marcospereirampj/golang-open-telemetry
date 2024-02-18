@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/marcospereirampj/golang-open-telemetry/otlp/handlers/get/home"
+	"github.com/marcospereirampj/golang-open-telemetry/home/handlers/get/home"
 	"go.uber.org/fx"
 )
 

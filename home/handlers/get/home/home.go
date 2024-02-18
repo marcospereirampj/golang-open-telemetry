@@ -1,8 +1,7 @@
 package home
 
 import (
-	"github.com/marcospereirampj/golang-open-telemetry/otlp/handlers/get"
-
+	"github.com/marcospereirampj/golang-open-telemetry/home/handlers/get"
 	"net/http"
 )
 

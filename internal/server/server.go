@@ -2,7 +2,10 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/marcospereirampj/golang-open-telemetry/pkg/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"net/http"
 	"time"
@@ -44,9 +47,10 @@ func NewHTTPRouter(params RouterParams) *chi.Mux {
 }
 
 func StartHTTPServer(lifecycle fx.Lifecycle, router *chi.Mux) {
+
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      router,
+		Handler:      otelhttp.NewHandler(router, "/"),
 		ReadTimeout:  5000 * time.Second,
 		WriteTimeout: 5000 * time.Second,
 	}
@@ -55,12 +59,22 @@ func StartHTTPServer(lifecycle fx.Lifecycle, router *chi.Mux) {
 		OnStart: func(context.Context) error {
 			errs := make(chan error, 2)
 
+			otelShutdown, err := telemetry.SetupOTelSDK(context.Background())
+			if err != nil {
+				return err
+			}
+
+			defer func() {
+				//nolint:typecheck
+				err = errors.Join(err, otelShutdown(context.Background()))
+			}()
+
 			go func() {
 				log.Printf("Listening and serving HTTP on %v", server.Addr)
 				errs <- server.ListenAndServe()
 			}()
 
-			return nil
+			return err
 		},
 		OnStop: func(ctx context.Context) error {
 			return server.Shutdown(ctx)
